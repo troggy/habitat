@@ -11,8 +11,8 @@ export const ERC20_ABI = [
   'transfer(address,uint256) returns (bool)',
 ];
 
-export const INTERVAL_LENGTH = 45500;
-export const MAX_INTERVAL = 2366000;
+export const INTERVAL_LENGTH = 45850;
+export const MAX_INTERVAL = 2384200;
 
 export const GOVERNANCE_ABI = [
   'symbol() view returns (string)',

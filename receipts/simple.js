@@ -77,9 +77,9 @@ async function main () {
     await br.init();
     // edit the config file
     const path = './web/.config.js';
-    const config = fs.readFileSync(path).toString().split('\n').filter((e) => e.indexOf('EXECUTION_PROXY_ADDRESS') === -1);
-    config.push(`export const EXECUTION_PROXY_ADDRESS = '${execProxy.address}';`);
-    config.push(`export const STRDL_ADDRESS = '${erc20.address}';`);
+    //const config = fs.readFileSync(path).toString().split('\n').filter((e) => e.indexOf('EXECUTION_PROXY_ADDRESS') === -1);
+    //config.push(`export const EXECUTION_PROXY_ADDRESS = '${execProxy.address}';`);
+    //config.push(`export const STRDL_ADDRESS = '${erc20.address}';`);
     fs.writeFileSync(
       './web/config.js',
       config.join('\n')

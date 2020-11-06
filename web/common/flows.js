@@ -400,7 +400,7 @@ export class LockFlow extends BaseFlow {
 
     this.write('Waiting for wallet...');
 
-    const tx = await this.erc20.connect(this.signer).lock(await this.signer.getAddress(), val, lockTime, true);
+    const tx = await this.erc20.connect(this.signer).lock(await this.signer.getAddress(), val, lockTime, false);
     this.confirm(
       'Done',
       `Deposit transaction hash: ${tx.hash}`,
