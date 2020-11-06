@@ -8,6 +8,7 @@ import TYPED_DATA from './../src/govBrick/typedData.js';
 import { encodeProposalActions } from './../src/govBrick/test/utils.js';
 
 const builder = new TransactionBuilder(TYPED_DATA);
+const minLockPeriod = 4 * 60;
 
 async function sendTransaction (primaryType, message, signer, bridge) {
   if (message.nonce === undefined && builder.fieldNames[primaryType][0].name === 'nonce') {
@@ -48,6 +49,7 @@ async function main () {
   const GovBrick = JSON.parse(fs.readFileSync('./build/contracts/GovBrick.json'));
   const ExecutionProxy = JSON.parse(fs.readFileSync('./build/contracts/ExecutionProxy.json'));
   const ERC20 = JSON.parse(fs.readFileSync('./build/contracts/TestERC20.json'));
+  const GOV = JSON.parse(fs.readFileSync('./build/contracts/GovernanceToken.json'));
   //
   const rootRpcUrl = process.env.ROOT_RPC_URL;
   const rootProvider = new ethers.providers.JsonRpcProvider(process.env.ROOT_RPC_URL);
@@ -57,8 +59,9 @@ async function main () {
   const bridgeL1 = await deploy(GovBrick, [], wallet);
   const execProxy = await deploy(ExecutionProxy, [bridgeL1.address], wallet);
   const erc20 = await deploy(ERC20, [], wallet);
+  const gov = await deploy(GOV, [erc20.address, bridgeL1.address, minLockPeriod], wallet);
 
-  console.log({ bridge: bridgeL1.address, executionProxy: execProxy.address, erc20: erc20.address, privKey });
+  console.log({ bridge: bridgeL1.address, executionProxy: execProxy.address, erc20: erc20.address, govToken: gov.address, privKey });
 
   {
     const br = new Bridge(
@@ -95,7 +98,7 @@ async function main () {
   {
     const args = {
       summoner: wallet.address,
-      approvedToken: erc20.address,
+      approvedToken: gov.address,
       periodDuration: 1,
       votingPeriod: 30,
       gracePeriod: 1,
@@ -110,13 +113,12 @@ async function main () {
   }
 
   {
-    // deposit
-    const amount = '0xffffffff';
+    // lock
+    const amount = '0xffffffffffffffff';
     const oldBlock = await provider.getBlockNumber();
-    let tx = await erc20.approve(bridgeL1.address, amount);
+    let tx = await erc20.approve(gov.address, amount);
     let receipt = await tx.wait();
-
-    tx = await bridgeL1.deposit(erc20.address, amount, wallet.address);
+    tx = await gov.lock(wallet.address, amount, minLockPeriod * 52, true);
     receipt = await tx.wait();
 
     // wait for deposit block to arrive
