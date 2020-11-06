@@ -1,7 +1,8 @@
-import { ERC20_ABI } from '../common/constants.js';
+import { ERC20_ABI, GOVERNANCE_ABI } from '../common/constants.js';
 import { formatObject, wrapListener } from '../common/utils.js';
-import { WithdrawFlow, DepositFlow, RagequitFlow } from '../common/flows.js';
+import { LockFlow, WithdrawFlow, DepositFlow, RagequitFlow } from '../common/flows.js';
 import { getProviders, getSigner } from '../common/tx.js';
+import { STRDL_ADDRESS } from '../config.js'
 
 async function getStats () {
   const signer = await getSigner();
@@ -14,15 +15,35 @@ async function getStats () {
   const decimals = await token.decimals();
   const balanceL1 = ethers.utils.formatUnits(await token.balanceOf(signerAddress), decimals);
   const tokenSymbol = await token.symbol();
+
   // TODO: inform the user about pending exits
   const availableForExit = ethers.utils.formatUnits(await bridge.getERC20Exit(tokenAddress, signerAddress), decimals);
 
   return {
-    'Token adress': tokenAddress,
-    'Token balance in your Wallet': `${balanceL1} ${tokenSymbol}`,
-    'Your shares on Habitat': ethers.utils.formatUnits(shares, decimals),
-    'Delegated account address': delegateKey,
-    'Shares available to Withdraw': availableForExit,
+    'Available for voting': `${ethers.utils.formatUnits(shares, decimals)} ${tokenSymbol}`,
+    'Pending for Withdrawal': `${availableForExit} ${tokenSymbol}`,
+    'Balance on Layer 1': `${balanceL1} ${tokenSymbol}`,
+  };
+}
+
+async function getStrudelStats () {
+  const signer = await getSigner();
+  const { habitat, rootProvider } = await getProviders();
+  const tokenAddress = await habitat.approvedToken();
+  const token = new ethers.Contract(tokenAddress, GOVERNANCE_ABI, rootProvider);
+  const decimals = await token.decimals();
+  const signerAddress = await signer.getAddress();
+  const strdlToken = new ethers.Contract(STRDL_ADDRESS, ERC20_ABI, rootProvider);
+  const strdlDecimals = await strdlToken.decimals();
+  const strdlBalanceL1 = ethers.utils.formatUnits(await strdlToken.balanceOf(signerAddress), decimals);
+  const strdlTokenSymbol = await strdlToken.symbol();
+
+  const [endBlock, lockTotal, mintTotal] = await token.getLock(signerAddress)
+
+  return {
+    'Amount Locked': `${ethers.utils.formatUnits(lockTotal, strdlDecimals)} ${strdlTokenSymbol}`,
+    'Lock expiration': `${endBlock.toString()}`,
+    'Free Balance': `${strdlBalanceL1} ${strdlTokenSymbol}`,
   };
 }
 
@@ -61,9 +82,19 @@ async function render () {
     container.appendChild(statContainer);
   }
 
+  {
+    const container = document.querySelector('.strudel');
+    const stats = await getStrudelStats();
+    const strudelContainer = formatObject(stats);
+
+    strudelContainer.className = 'grid2 stats';
+    container.appendChild(strudelContainer);
+
+  }
   // interactive stuff
   // L1
   {
+    wrapListener('button#lock', (evt) => new LockFlow(evt.target));
     // deposit
     wrapListener('button#deposit', (evt) => new DepositFlow(evt.target));
     // withdraw
