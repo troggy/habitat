@@ -16,7 +16,11 @@ That provides you with a full stack environment in combination with `receipts/si
 
 Run `yarn compile` inside the docker container.
 
+After compiling contract run `mv scripts/GovernanceToken.json build/contracts`.
+
 ### UI
+
+A local http server at `scripts/http.js` is available to host the web ui at `web/`.
 
 The Web UI is available at `http://localhost:8080/`.
 
