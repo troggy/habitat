@@ -1,5 +1,5 @@
-import { ROOT_CHAIN_ID } from '../config.js';
-import { ERC20_ABI } from './constants.js';
+import { ROOT_CHAIN_ID, STRDL_ADDRESS } from '../config.js';
+import { ERC20_ABI, GOVERNANCE_ABI, INTERVAL_LENGTH, MAX_INTERVAL } from './constants.js';
 import { getProviders, sendTransaction } from './tx.js';
 
 export function stringDance (ele, str, _childs, idx, _skip) {
@@ -56,6 +56,9 @@ export class BaseFlow {
 
     this.notifyBox = document.createElement('p');
     this.container.appendChild(this.notifyBox);
+
+    this.rangeValueC = document.createElement('p');
+    this.container.appendChild(this.rangeValueC);
 
     this.input = document.createElement('input');
     this.input.disabled = true;
@@ -226,8 +229,11 @@ export class BaseFlow {
     this.habitat = habitat;
 
     const tokenAddress = await this.habitat.approvedToken();
-    this.erc20 = new ethers.Contract(tokenAddress, ERC20_ABI, rootProvider);
+    this.erc20 = new ethers.Contract(tokenAddress, GOVERNANCE_ABI, rootProvider);
     this.tokenSymbol = await this.erc20.symbol();
+
+    this.strdl = new ethers.Contract(STRDL_ADDRESS, ERC20_ABI, rootProvider);
+    this.strdlTokenSymbol = await this.strdl.symbol();
 
     this.runNext(this.setupFlow);
   }
@@ -283,6 +289,118 @@ export class DepositFlow extends BaseFlow {
     this.write('Waiting for wallet...');
 
     const tx = await this.habitat.connect(this.signer).deposit(erc20.address, val, await this.signer.getAddress());
+    this.confirm(
+      'Done',
+      `Deposit transaction hash: ${tx.hash}`,
+      this.onDone
+    );
+  }
+}
+
+export class LockFlow extends BaseFlow {
+  constructor (root) {
+    super(root);
+    this.rangeValueC.style.padding = "10px"
+    this.rangeValueLeft = document.createElement('span');
+    this.rangeValueC.appendChild(this.rangeValueLeft);
+    this.rangeValueLeft.style.float = "left"
+
+    this.rangeValueRight = document.createElement('span');
+    this.rangeValueC.appendChild(this.rangeValueRight);
+    this.rangeValueRight.style.float = "right"
+
+
+    this.runNext(this.setupWallet);
+  }
+
+  calculateGSTRDL (weeks, amount) {
+    const lockDuration = INTERVAL_LENGTH*Number(weeks);
+    return (((MAX_INTERVAL*2-(lockDuration))*lockDuration*parseFloat(amount))/(MAX_INTERVAL*MAX_INTERVAL)).toFixed(2)
+  }
+
+  lock (amount, str, callback) {
+    this._inputCallback = callback;
+    this.input.disabled = false;
+    this.input.type = 'range'
+    this.input.min = 1
+    this.input.max = 52
+    this.input.value = 40
+    this.input.step = 1
+    this.input.focus();
+
+    const rangeValueLeft = this.rangeValueLeft;
+    const rangeValueRight = this.rangeValueRight;
+    const calculateGSTRDL = this.calculateGSTRDL;
+
+    rangeValueLeft.innerHTML = this.input.value;
+    rangeValueRight.innerHTML = "g$TRDL: ~ " + calculateGSTRDL(this.input.value, amount)
+
+    this.input.oninput = function() {
+      rangeValueLeft.innerHTML = this.value;
+      rangeValueRight.innerHTML = "g$TRDL: ~ " + calculateGSTRDL(this.value, amount)
+    }
+
+    stringDance(this.notifyBox, str);
+  }
+
+  async setupFlow () {
+    this.ask(
+      `How much ${this.strdlTokenSymbol} do you want to lock?`,
+      'Lock amount',
+      this.lockTime
+    );
+  }
+
+
+
+  async lockTime (str) {
+    const number = parseFloat(str);
+    if (!number || number <= 0) {
+      throw new Error('Invalid Amount.');
+    }
+    this._amount = str;
+    this.lock(
+      str,
+      `For how many weeks do you want to lock?`,
+      this.confirmDeposit
+    );
+  }
+
+  confirmDeposit (str) {
+    this._weeks = Number(str);
+    this.container.removeChild(this.rangeValueC);
+    this.input.type = "text";
+    this.input.value = "";
+    this.confirm(
+      'Confirm',
+      `Tap 'Confirm' to lock ${this._amount} ${this.strdlTokenSymbol} for ${this.calculateGSTRDL(this._weeks, this._amount)} g$TRDL.`,
+      this.onConfirmDeposit
+    );
+  }
+
+  async onConfirmDeposit () {
+    const decimals = await this.strdl.decimals();
+    const amount = ethers.utils.parseUnits(this._amount, decimals);
+
+    this.runNext(this.deposit, amount);
+  }
+
+  async deposit (val) {
+    const allowance = await this.strdl.allowance(await this.signer.getAddress(), this.erc20.address);
+    const strdl = this.strdl.connect(this.signer);
+    const lockTime = Number(this._weeks) * INTERVAL_LENGTH;
+
+
+    if (allowance.lt(val)) {
+      this.write('Allowance too low.\nPlease sign a transaction to increase the token allowance first.');
+      let tx = await strdl.approve(this.erc20.address, val);
+      this.write(`Waiting for Transaction(${tx.hash}) to be mined...`);
+      await tx.wait();
+    }
+
+    this.write('Waiting for wallet...');
+
+    const tx = await this.erc20.connect(this.signer).lock(await this.signer.getAddress(), val, lockTime, true);
     this.confirm(
       'Done',
       `Deposit transaction hash: ${tx.hash}`,

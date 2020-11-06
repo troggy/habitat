@@ -11,6 +11,23 @@ export const ERC20_ABI = [
   'transfer(address,uint256) returns (bool)',
 ];
 
+export const INTERVAL_LENGTH = 45500;
+export const MAX_INTERVAL = 2366000;
+
+export const GOVERNANCE_ABI = [
+  'symbol() view returns (string)',
+  'decimals() view returns (uint8)',
+  'allowance(address,address) view returns (uint256)',
+  'balanceOf(address) view returns (uint256)',
+  'approve(address spender,uint256 value) returns (bool)',
+  'transfer(address,uint256) returns (bool)',
+  'getLock(address) view returns (uint256, uint256, uint256)',
+  'lockWithPermit(uint256, uint256, uint256, uint8, bytes32, bytes32, bool) returns (bool)',
+  'nonces(address) view returns (uint256)',
+  'lock(address, uint256, uint256, bool) returns (bool)',
+  'bridge() view returns (address)'
+];
+
 export const BRICK_ABI = [
   'event Abort(uint256 indexed proposalIndex)',
   'event Deposit(address token, address owner, uint256 value)',

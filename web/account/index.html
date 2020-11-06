@@ -14,8 +14,9 @@
     <canvas id="gradient-canvas"></canvas>
       <section class='wrapperNav'>
         <div class='Nav'>
-          <img src='../assets/logoBig.svg'>
+          <img src='../assets/strudel.png'>
           <div>
+            <a class='button' href='https://gov.strudel.finance' target="_blank">Governance Forum</a>
             <a class='button' href='/'>Proposals</a>
             <a class='button' href='/propose/'>Submit a Proposal</a>
           </div>
@@ -23,24 +24,30 @@
       </section>
     <div class='wrapperContent'>
       <section class='explorer'>
-        <h1>My Account</h1>
+        <h1>My Strudel Governance Account</h1>
         <section>
           <div class='wallet'></div>
+        </section>
+        <h1>My Strudel Account</h1>
+        <section>
+          <div class='strudel'></div>
         </section>
         <section>
           <div class="flexSpaceBetween">
             <div>
-              <h1>Manage shares on Habitat</h1>
+              <h1>Manage my Account</h1>
               <space></space>
               <div class='actionsL2'>
                 <h3>Layer-2 Actions</h3>
-                <button disabled=true id='exit'>Exit shares to withdraw</button>
+                <button disabled=true id='exit'>Initiate g$TRDL withdrawal</button>
               </div>
               <space></space>
               <div class='actionsL1'>
                 <h3>Layer-1 Actions</h3>
-                <button disabled=true id='deposit'>Deposit shares to Habitat</button>
-                <button disabled=true id='withdraw'>Withdraw shares from Habitat</button>
+                <button disabled=true id='lock'>Lock & Deposit $TRDL into Voting</button>
+                <button disabled=true id='deposit'>Deposit g$TRDL into Voting</button>
+                <button disabled=true id='withdraw'>Finalize g$TRDL Withdrawal</button>
+                <button disabled=true id='withdraw'>Unlock g$TRDL for $TRDL</button>
               </div>
             </div>
         </div>

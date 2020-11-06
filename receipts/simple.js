@@ -8,7 +8,7 @@ import TYPED_DATA from './../src/govBrick/typedData.js';
 import { encodeProposalActions } from './../src/govBrick/test/utils.js';
 
 const builder = new TransactionBuilder(TYPED_DATA);
-const minLockPeriod = 4 * 60;
+const minLockPeriod = 45500;
 
 async function sendTransaction (primaryType, message, signer, bridge) {
   if (message.nonce === undefined && builder.fieldNames[primaryType][0].name === 'nonce') {
@@ -79,7 +79,7 @@ async function main () {
     const path = './web/.config.js';
     const config = fs.readFileSync(path).toString().split('\n').filter((e) => e.indexOf('EXECUTION_PROXY_ADDRESS') === -1);
     config.push(`export const EXECUTION_PROXY_ADDRESS = '${execProxy.address}';`);
-    console.log(config);
+    config.push(`export const STRDL_ADDRESS = '${erc20.address}';`);
     fs.writeFileSync(
       './web/config.js',
       config.join('\n')
