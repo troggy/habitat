@@ -1,8 +1,8 @@
 // The L2 node
-export const RPC_URL = `http://localhost:8111`;
+export const RPC_URL = `https://govbrick.strudel.finance`;
 // the root network
-export const ROOT_CHAIN_ID = 99;
+export const ROOT_CHAIN_ID = 1;
 // The execution proxy for on-chain execution
 
-export const EXECUTION_PROXY_ADDRESS = '0x23339e1334Ac27be0fB39a75C60BC9C0328A2359';
-export const STRDL_ADDRESS = '0xEb615484083ADF9bE149Ea23d2a9418646590439';
+export const EXECUTION_PROXY_ADDRESS = '0x62C42ed3C43339cb6f63169d34e932AB94f397AA';
+export const STRDL_ADDRESS = '0x297d33e17e61c2ddd812389c2105193f8348188a';
