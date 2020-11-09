@@ -1,15 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;900');
+@import url('https://fonts.googleapis.com/css2?family=Chivo:wght@400;900');
 @import url('https://fonts.googleapis.com/css2?family=Roboto%20Mono:wght@400');
 
 :root {
   --color-bg: #FAFDFFAC;
   --color-error: #eb4d62;
   --color-text: #000000;
-  --color-brand1: #635BFF;
-  --color-brand2: #1CDB9E;
-  --color-brand3: #3BDEFF;
-  --color-brand4: #FFCB57;
-  --font-family-default: 'Montserrat';
+  --color-brand1: #55DD8C;
+  --color-brand2: #FCFC05;
+  --color-brand3: #75FDAC;
+  --color-brand4: #FCFC05;
+  --font-family-default: 'Chivo';
   --font-family-mono: 'Roboto Mono';
 }
 
