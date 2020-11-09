@@ -11,6 +11,17 @@ export const ERC20_ABI = [
   'transfer(address,uint256) returns (bool)',
 ];
 
+export const STRDL_ABI = [
+  'symbol() view returns (string)',
+  'name() view returns (string)',
+  'decimals() view returns (uint8)',
+  'allowance(address,address) view returns (uint256)',
+  'balanceOf(address) view returns (uint256)',
+  'approve(address spender,uint256 value) returns (bool)',
+  'transfer(address,uint256) returns (bool)',
+  'nonces(address) view returns (uint256)',
+];
+
 export const INTERVAL_LENGTH = 45850;
 export const MAX_INTERVAL = 2384200;
 

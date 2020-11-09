@@ -1,6 +1,7 @@
 import { ROOT_CHAIN_ID, STRDL_ADDRESS } from '../config.js';
-import { ERC20_ABI, GOVERNANCE_ABI, INTERVAL_LENGTH, MAX_INTERVAL } from './constants.js';
+import { STRDL_ABI, GOVERNANCE_ABI, INTERVAL_LENGTH, MAX_INTERVAL } from './constants.js';
 import { getProviders, sendTransaction } from './tx.js';
+import {getPermitSignature} from './preparePermit.js';
 
 export function stringDance (ele, str, _childs, idx, _skip) {
   if (_skip) {
@@ -232,7 +233,7 @@ export class BaseFlow {
     this.erc20 = new ethers.Contract(tokenAddress, GOVERNANCE_ABI, rootProvider);
     this.tokenSymbol = await this.erc20.symbol();
 
-    this.strdl = new ethers.Contract(STRDL_ADDRESS, ERC20_ABI, rootProvider);
+    this.strdl = new ethers.Contract(STRDL_ADDRESS, STRDL_ABI, rootProvider);
     this.strdlTokenSymbol = await this.strdl.symbol();
 
     this.runNext(this.setupFlow);
@@ -385,22 +386,22 @@ export class LockFlow extends BaseFlow {
     this.runNext(this.deposit, amount);
   }
 
-  async deposit (val) {
-    const allowance = await this.strdl.allowance(await this.signer.getAddress(), this.erc20.address);
+  async deposit (val){
+    const signerAddress = await this.signer.getAddress();
+    const allowance = await this.strdl.allowance(signerAddress, this.erc20.address);
     const strdl = this.strdl.connect(this.signer);
     const lockTime = Number(this._weeks) * INTERVAL_LENGTH;
 
-
+    let tx;
     if (allowance.lt(val)) {
-      this.write('Allowance too low.\nPlease sign a transaction to increase the token allowance first.');
-      let tx = await strdl.approve(this.erc20.address, val);
-      this.write(`Waiting for Transaction(${tx.hash}) to be mined...`);
-      await tx.wait();
+      this.write('Allowance too low.\nPlease allow the token spending first.');
+      let {r, s, v, deadline} = await getPermitSignature(this.signer, signerAddress, strdl, {owner: signerAddress, spender: this.erc20.address, value: val}, ROOT_CHAIN_ID);
+      this.write('Waiting for wallet...');
+      tx = await this.erc20.connect(this.signer).lockWithPermit(val, lockTime, deadline, v, r, s, false);
+    } else {
+      this.write('Waiting for wallet...');
+      tx = await this.erc20.connect(this.signer).lock(await this.signer.getAddress(), val, lockTime, false);
     }
-
-    this.write('Waiting for wallet...');
-
-    const tx = await this.erc20.connect(this.signer).lock(await this.signer.getAddress(), val, lockTime, false);
     this.confirm(
       'Done',
       `Deposit transaction hash: ${tx.hash}`,
