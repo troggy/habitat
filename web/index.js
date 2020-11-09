@@ -1,4 +1,4 @@
-import { formatObject, computeVotePercentages } from './common/utils.js';
+import { formatObject, computeVotePercentages, secondsToHms } from './common/utils.js';
 import { getProviders } from './common/tx.js';
 
 async function render () {
@@ -6,7 +6,9 @@ async function render () {
   const pendingContainer = document.querySelector('.pending');
   const proposedContainer = document.querySelector('.proposed');
   // TODO: calculate current period in seconds and display voting time left
-  //const currentPeriod = await habitat.getCurrentPeriod();
+  const currentPeriod = await habitat.getCurrentPeriod();
+  const votingPeriodLength = await habitat.votingPeriodLength();
+  const periodDuration = await habitat.periodDuration();
 
   async function renderProposal (evt, args) {
     const proposalIndex = args.proposalIndex.toString()
@@ -16,7 +18,10 @@ async function render () {
     const { yay, nay } = computeVotePercentages(proposal);
 
     const expired = await habitat.hasVotingPeriodExpired(proposal.startingPeriod);
-    let status = expired ? 'Voting Ended' : '🎤';
+
+    const lengthInSeconds = (((+proposal.startingPeriod)+(+votingPeriodLength))-(+currentPeriod))*(+periodDuration);
+
+    let status = expired ? 'Voting Ended' : secondsToHms(lengthInSeconds);
     if (proposal.aborted) {
       status = '❌';
     } else if (proposal.didPass || proposal.processed) {
@@ -31,8 +36,10 @@ async function render () {
           id: proposalIndex,
           status,
           title: description,
-          yay: `${(yay * 100).toFixed(2)} % 👍`,
-          nay: `${(nay * 100).toFixed(2)} % 👎`,
+          yay: `${(yay * 100).toFixed(2)} % 👍
+                ${ethers.utils.formatUnits(proposal.yesVotes, 18)} g$TRDL`,
+          nay: `${(nay * 100).toFixed(2)} % 👎
+                ${ethers.utils.formatUnits(proposal.noVotes, 18)} g$TRDL`,
         },
         `/proposal/#${evt.transactionHash}`
       )

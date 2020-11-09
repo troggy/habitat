@@ -40,7 +40,7 @@ async function render () {
 
   const container = document.querySelector('.proposal');
   const input = container.querySelector('input');
-  const textArea = container.querySelector('textarea');
+  const textArea = container.querySelector('#textarea');
   const actions = document.querySelector('.actions');
   const btn = document.querySelector('button#submit');
 
