@@ -13,7 +13,7 @@
     "_test": "yarn compile && mocha --file node_modules/@NutBerry/rollup-bricks/src/common/test/mocha.js --color --bail --exit --timeout=900000 $@"
   },
   "devDependencies": {
-    "@NutBerry/rollup-bricks": "git+https://github.com/NutBerry/rollup-bricks.git#master",
+    "@NutBerry/rollup-bricks": "https://github.com/NutBerry/rollup-bricks.git#master",
     "develatus-apparatus": "https://github.com/pinkiebell/develatus-apparatus.git#v0.2.0",
     "ipfs-tools": "https://github.com/pinkiebell/ipfs-tools.git#master",
     "ethers": "=5.0.4",

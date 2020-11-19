@@ -400,7 +400,7 @@ export class LockFlow extends BaseFlow {
       tx = await this.erc20.connect(this.signer).lockWithPermit(val, lockTime, deadline, v, r, s, false);
     } else {
       this.write('Waiting for wallet...');
-      tx = await this.erc20.connect(this.signer).lock(await this.signer.getAddress(), val, lockTime, false);
+      tx = await this.erc20.connect(this.signer).lock(await this.signer.getAddress(), val, lockTime, true);
     }
     this.confirm(
       'Done',
