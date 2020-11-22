@@ -397,7 +397,7 @@ export class LockFlow extends BaseFlow {
       this.write('Allowance too low.\nPlease allow the token spending first.');
       let {r, s, v, deadline} = await getPermitSignature(this.signer, signerAddress, strdl, {owner: signerAddress, spender: this.erc20.address, value: val}, ROOT_CHAIN_ID);
       this.write('Waiting for wallet...');
-      tx = await this.erc20.connect(this.signer).lockWithPermit(val, lockTime, deadline, v, r, s, false);
+      tx = await this.erc20.connect(this.signer).lockWithPermit(val, lockTime, deadline, v, r, s, true);
     } else {
       this.write('Waiting for wallet...');
       tx = await this.erc20.connect(this.signer).lock(await this.signer.getAddress(), val, lockTime, true);
